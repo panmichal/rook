@@ -4,9 +4,8 @@
 )]
 
 use keyring;
-use rusqlite::{Connection, Result};
+use rusqlite::Connection;
 use std::ops::Deref;
-use tauri::App;
 struct Participant {
     id: i32,
     name: String,
