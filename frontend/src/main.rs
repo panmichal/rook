@@ -30,7 +30,7 @@ fn update_people_list(people_list: UseStateHandle<Vec<Person>>) {
         match get_people_list().await {
             Ok(people) => {
                 log!("Got people list");
-                let people: Vec<Person> = people.into_serde().unwrap();
+                let people: Vec<Person> = serde_wasm_bindgen::from_value(people).unwrap();
                 people_list.set(people);
             }
             Err(err) => {
