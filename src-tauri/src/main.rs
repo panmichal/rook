@@ -5,7 +5,10 @@
 
 use keyring;
 use rusqlite::Connection;
+use serde::Serialize;
 use std::ops::Deref;
+
+#[derive(Serialize)]
 struct Participant {
     id: i32,
     name: String,
@@ -32,6 +35,27 @@ impl AppSettings {
     fn encrypted(&self) -> bool {
         self.encrypted_db
     }
+}
+
+#[tauri::command]
+fn people_list() -> Vec<Participant> {
+    vec![
+        Participant {
+            id: 1,
+            name: "test".to_string(),
+            description: Some("test".to_string()),
+        },
+        Participant {
+            id: 2,
+            name: "test2".to_string(),
+            description: Some("test2".to_string()),
+        },
+        Participant {
+            id: 3,
+            name: "test3".to_string(),
+            description: Some("test3".to_string()),
+        },
+    ]
 }
 
 fn main() {
@@ -78,6 +102,7 @@ fn main() {
     .expect("Could not insert test data");
 
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![people_list])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
