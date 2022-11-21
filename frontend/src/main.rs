@@ -30,6 +30,7 @@ fn update_people_list(people_list: UseStateHandle<Vec<Person>>) {
         match get_people_list().await {
             Ok(people) => {
                 log!("Got people list");
+                log!("{:?}", people.clone());
                 let people: Vec<Person> = serde_wasm_bindgen::from_value(people).unwrap();
                 people_list.set(people);
             }
@@ -45,14 +46,14 @@ fn update_people_list(people_list: UseStateHandle<Vec<Person>>) {
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let people_list: UseStateHandle<Vec<Person>> = use_state(|| vec![]);
+    let people_list: UseStateHandle<Vec<Person>> = use_state_eq(|| vec![]);
 
     {
         let people_list = people_list.clone();
         use_effect(move || {
             update_people_list(people_list.clone());
             || ()
-        })
+        });
     }
 
     let on_form_submit = Callback::from(|data: State| {
