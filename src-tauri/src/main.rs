@@ -6,7 +6,8 @@
 use keyring;
 use rusqlite::Connection;
 use serde::Serialize;
-use std::ops::Deref;
+use std::{ops::Deref, sync::Mutex};
+use tauri::State;
 
 #[derive(Serialize)]
 struct Participant {
@@ -18,6 +19,10 @@ struct Participant {
 #[derive(Clone)]
 struct AppSettings {
     encrypted_db: bool,
+}
+
+struct DbConnection {
+    db: Mutex<Option<Connection>>,
 }
 
 impl AppSettings {
@@ -38,24 +43,25 @@ impl AppSettings {
 }
 
 #[tauri::command]
-fn people_list() -> Vec<Participant> {
-    vec![
-        Participant {
-            id: 1,
-            name: "test".to_string(),
-            description: Some("test".to_string()),
-        },
-        Participant {
-            id: 2,
-            name: "test2".to_string(),
-            description: Some("test2".to_string()),
-        },
-        Participant {
-            id: 3,
-            name: "test3".to_string(),
-            description: Some("test3".to_string()),
-        },
-    ]
+fn people_list(conn: State<DbConnection>) -> Vec<Participant> {
+    let c = conn.db.lock().unwrap();
+    let mut select = c
+        .as_ref()
+        .unwrap()
+        .prepare("SELECT id, name, description FROM participants")
+        .unwrap();
+
+    select
+        .query_map([], |row| {
+            Ok(Participant {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                description: row.get(2)?,
+            })
+        })
+        .unwrap()
+        .map(|p| p.unwrap())
+        .collect()
 }
 
 fn main() {
@@ -102,6 +108,9 @@ fn main() {
     .expect("Could not insert test data");
 
     tauri::Builder::default()
+        .manage(DbConnection {
+            db: Mutex::new(Some(conn)),
+        })
         .invoke_handler(tauri::generate_handler![people_list])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
