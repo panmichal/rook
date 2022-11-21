@@ -16,7 +16,7 @@ pub fn people_list(props: &Props) -> Html {
                     html! {
                         <li>
                             <p>{&*person.name}</p>
-                            <p>{&*person.description}</p>
+                            <p>{&person.description.clone().unwrap_or("No description".to_owned())}</p>
                         </li>
                     }
                 })}

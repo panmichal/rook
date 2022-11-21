@@ -11,7 +11,7 @@ use tauri::State;
 
 #[derive(Serialize)]
 struct Participant {
-    id: i32,
+    id: u32,
     name: String,
     description: Option<String>,
 }
